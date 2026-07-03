@@ -243,7 +243,13 @@ function Fish({ phase, round, kind, size, expression, flapSpeed, jumpDurationMs,
       viewBox="0 0 170 90"
       width={Math.round(BASE_WIDTH * scale)}
       height={Math.round(BASE_HEIGHT * scale)}
-      className={clickable ? "cursor-pointer drop-shadow-md" : "pointer-events-none drop-shadow-md"}
+      // overflow-visible: 점프/팔딱임 애니메이션이 body g를 회전·이동시킬 때 그림이
+      // 자기 viewBox 밖으로 나가는데, svg 기본값(hidden)이면 그 부분이 잘려 보인다.
+      className={
+        clickable
+          ? "cursor-pointer overflow-visible drop-shadow-md"
+          : "pointer-events-none overflow-visible drop-shadow-md"
+      }
       onClick={clickable ? onCatch : undefined}
       role={clickable ? "button" : undefined}
       aria-label={clickable ? label : undefined}

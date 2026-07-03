@@ -2,8 +2,15 @@ import type { CreatureKind, FishExpression, FishSize, Position } from "../types/
 
 export const INITIAL_LIVES = 5;
 
-// 스테이지 가장자리에서 물고기가 잘리지 않도록 두는 여백(%)
-export const STAGE_PADDING = 14;
+// 스테이지 가장자리에서 생물이 잘리지 않도록 두는 여백(%). 화면은 세로가 긴 모바일
+// 프레임이라 가로/세로 폭이 다르고, 가장 큰(대형, 1.35배) 생물의 실제 픽셀 크기가
+// 폭 대비 훨씬 커서(132x70 기준) 가로 여백을 세로보다 훨씬 넉넉하게 잡아야 잘리지 않는다.
+// 스테이지는 rounded-3xl(모서리 반경 24px) + overflow-hidden이라, 생물이 모서리 쪽에
+// 있으면 직선 여백만으로는 부족하고 둥근 모서리가 대각선으로 파고들어 잘린다 — 그래서
+// 여백에 모서리 반경만큼 더 여유를 준다. (예: 351px 폭에서 대형 생물 반폭 89px + 모서리
+// 24px ≈ 32% 필요 — 35%로 여유를 둔다.)
+export const STAGE_PADDING_X = 35;
+export const STAGE_PADDING_Y = 15;
 
 // 같은 물고기의 다음 점프 위치는 이전 위치에서 이 거리(%) 이상 떨어져야 한다.
 export const MIN_JUMP_DISTANCE = 32;
@@ -114,10 +121,11 @@ export interface AvoidRule {
 // rules를 모두 만족하는(=각 기준 위치에서 minDistance 이상 떨어진) 좌표를 찾는다.
 // 못 찾으면 각 기준까지의 여유 거리 합이 가장 큰 후보로 최선을 다해 타협한다.
 export function pickPosition(rules: readonly AvoidRule[], rng: () => number = Math.random): Position {
-  const span = 100 - STAGE_PADDING * 2;
+  const spanX = 100 - STAGE_PADDING_X * 2;
+  const spanY = 100 - STAGE_PADDING_Y * 2;
   const sample = (): Position => ({
-    x: STAGE_PADDING + rng() * span,
-    y: STAGE_PADDING + rng() * span,
+    x: STAGE_PADDING_X + rng() * spanX,
+    y: STAGE_PADDING_Y + rng() * spanY,
   });
 
   for (let attempt = 0; attempt < 30; attempt++) {

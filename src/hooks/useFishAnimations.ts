@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from "react";
+import { useRef, type RefObject } from "react";
 import { gsap } from "gsap";
 
 export interface FishRefs {
@@ -18,23 +18,35 @@ export interface AnimationOrigins {
 export function useFishAnimations(refs: FishRefs, origins: AnimationOrigins) {
   const activeTweens = useRef<(gsap.core.Tween | gsap.core.Timeline)[]>([]);
 
-  useEffect(() => {
-    if (refs.body.current) gsap.set(refs.body.current, { svgOrigin: origins.body });
-    if (refs.tail.current) gsap.set(refs.tail.current, { svgOrigin: origins.tail });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [origins.body, origins.tail]);
-
   function killAll() {
     for (const tween of activeTweens.current) tween.kill();
     activeTweens.current = [];
   }
 
+  // 매 애니메이션 시작마다 transform을 완전히 지운 "깨끗한 상태"에서 svgOrigin을 다시
+  // 지정한다. 리롤로 종(kind)이 바뀌면 회전축도 바뀌는데, 이전 애니메이션의 회전이 남은
+  // 채로 svgOrigin만 바꾸면 GSAP smoothOrigin이 화면 위치를 보존하려고 보정 이동값을
+  // 끼워 넣고, 그 오프셋이 회전을 0으로 되돌린 뒤에도 영구히 남아 생물이 그물 링
+  // 중심에서 어긋난다.
+  function resetTransforms() {
+    const { body, tail } = refs;
+    if (body.current) {
+      gsap.set(body.current, { clearProps: "transform" });
+      gsap.set(body.current, { svgOrigin: origins.body });
+    }
+    if (tail.current) {
+      gsap.set(tail.current, { clearProps: "transform" });
+      gsap.set(tail.current, { svgOrigin: origins.tail });
+    }
+  }
+
   // 착지 후 팔딱거리는 대기 모션. flapSpeed가 클수록(점수가 오를수록) 더 다급하게 움직인다.
   function playIdle(flapSpeed = 1) {
     killAll();
+    resetTransforms();
     const { body, tail } = refs;
     if (!body.current) return;
-    gsap.set(body.current, { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1 });
+    gsap.set(body.current, { opacity: 1 });
 
     const flap = 0.16 / flapSpeed;
     const bodyTl = gsap.timeline({ repeat: -1 });
@@ -60,6 +72,7 @@ export function useFishAnimations(refs: FishRefs, origins: AnimationOrigins) {
   // 다른 위치로 튀어 오르는 점프 모션 (도약 → 체공 → 착지).
   function playJump(durationMs: number, onComplete?: () => void) {
     killAll();
+    resetTransforms();
     const { body, tail } = refs;
     if (!body.current) {
       onComplete?.();
@@ -89,6 +102,7 @@ export function useFishAnimations(refs: FishRefs, origins: AnimationOrigins) {
   // 손(그물)에 잡혀 순간적으로 움츠러들며 사라지는 모션.
   function playCatch(durationMs: number) {
     killAll();
+    resetTransforms();
     const { body } = refs;
     if (!body.current) return;
     const d = durationMs / 1000;
