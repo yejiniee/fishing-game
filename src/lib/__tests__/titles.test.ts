@@ -2,9 +2,15 @@ import { describe, expect, it } from "vitest";
 import { TITLE_TIERS, nextTitleGap, titleForCatches } from "../titles";
 
 describe("titleForCatches", () => {
-  it("gives the burnout-boss title to anyone under 20 catches", () => {
+  it("gives the burnout-boss title to anyone under the second tier's threshold", () => {
     expect(titleForCatches(0)).toBe("방어잡다 번아웃 온 사장님");
-    expect(titleForCatches(19)).toBe("방어잡다 번아웃 온 사장님");
+    expect(titleForCatches(30)).toBe("방어잡다 번아웃 온 사장님");
+    expect(titleForCatches(TITLE_TIERS[1].minCatches - 1)).toBe("방어잡다 번아웃 온 사장님");
+    expect(titleForCatches(TITLE_TIERS[1].minCatches)).not.toBe("방어잡다 번아웃 온 사장님");
+  });
+
+  it("has exactly four tiers", () => {
+    expect(TITLE_TIERS).toHaveLength(4);
   });
 
   it("upgrades exactly at each tier threshold", () => {
