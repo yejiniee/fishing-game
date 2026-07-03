@@ -13,7 +13,8 @@ import {
   FISH_SIZES,
   MIN_FISH_GAP,
   MIN_JUMP_DISTANCE,
-  STAGE_PADDING,
+  STAGE_PADDING_X,
+  STAGE_PADDING_Y,
 } from "../fishGame";
 
 describe("stageForCatches", () => {
@@ -112,10 +113,10 @@ describe("pickPosition", () => {
   it("stays within the padded stage bounds", () => {
     const rng = () => 0.5;
     const pos = pickPosition([], rng);
-    expect(pos.x).toBeGreaterThanOrEqual(STAGE_PADDING);
-    expect(pos.x).toBeLessThanOrEqual(100 - STAGE_PADDING);
-    expect(pos.y).toBeGreaterThanOrEqual(STAGE_PADDING);
-    expect(pos.y).toBeLessThanOrEqual(100 - STAGE_PADDING);
+    expect(pos.x).toBeGreaterThanOrEqual(STAGE_PADDING_X);
+    expect(pos.x).toBeLessThanOrEqual(100 - STAGE_PADDING_X);
+    expect(pos.y).toBeGreaterThanOrEqual(STAGE_PADDING_Y);
+    expect(pos.y).toBeLessThanOrEqual(100 - STAGE_PADDING_Y);
   });
 
   it("respects a single avoid rule (own previous position)", () => {
@@ -151,7 +152,7 @@ describe("pickPosition", () => {
   it("falls back to the best-effort candidate when no position satisfies every rule", () => {
     const rules = [{ position: { x: 50, y: 50 }, minDistance: 200 }];
     const next = pickPosition(rules, () => 0.5);
-    expect(next.x).toBeGreaterThanOrEqual(STAGE_PADDING);
-    expect(next.x).toBeLessThanOrEqual(100 - STAGE_PADDING);
+    expect(next.x).toBeGreaterThanOrEqual(STAGE_PADDING_X);
+    expect(next.x).toBeLessThanOrEqual(100 - STAGE_PADDING_X);
   });
 });

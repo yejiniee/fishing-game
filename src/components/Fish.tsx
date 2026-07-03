@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, type RefObject } from "react";
 import type { CreatureKind, FishExpression, FishPhase, FishSize } from "../types/fish";
-import { useFishAnimations, type FishRefs } from "../hooks/useFishAnimations";
+import { useFishAnimations, type AnimationOrigins, type FishRefs } from "../hooks/useFishAnimations";
 import { CATCH_DELAY_MS, FISH_SIZES } from "../lib/fishGame";
 
 interface FishProps {
@@ -36,11 +36,15 @@ const PUFFER_COLORS = {
   belly: "#fff7ed",
 };
 
+// 참고 이미지(둥근 몸통 + 귀 모양 지느러미 + 두꺼운 검정 외곽선 + 스캘럽 촉수)를 따른
+// 플랫 스티커 아이콘 스타일 팔레트. 그라디언트 없이 단색으로 칠한다.
 const SQUID_COLORS = {
-  gradientFrom: "#f0abfc",
-  gradientMid: "#d946ef",
-  gradientTo: "#a21caf",
-  stroke: "#701a75",
+  mantle: "#ff6f6f",
+  mantleHighlight: "#ffa3a3",
+  ear: "#e04b4b",
+  tentacleDark: "#ff7a7a",
+  tentacleLight: "#ffb3b3",
+  outline: "#20212b",
 };
 
 function YellowtailFace({ expression }: { expression: FishExpression }) {
@@ -154,48 +158,72 @@ function PufferShape({ gradientId, tailRef }: { gradientId: string; tailRef: Ref
   );
 }
 
-// 오징어 — 잡으면 안 되는 미끼. 몸통 + 다리(촉수) 실루엣이 물고기와 확연히 다르다.
-// 촉수는 머리 한 점(headX)에서 부채꼴로 퍼지고, 지느러미는 몸통을 그린 "다음"에 그려서
-// 몸통에 가려지지 않고 꼬리 끝에 또렷이 붙어 보이게 한다.
-function SquidShape({ gradientId, tailRef }: { gradientId: string; tailRef: RefObject<SVGGElement | null> }) {
+// 다른 종들은 그물 링이 "몸통 중심"에 맞춰진다 (방어는 몸통 타원 중심, 복어는 원 중심 —
+// 지느러미·꼬리처럼 뻗어나온 부위는 링 밖으로 나가도 무방). 오징어도 같은 규칙을 따르도록
+// 몸통(외투막) 중심을 뷰박스 정중앙(85,45)에 맞추고, 촉수는 몸통 아래로 늘어져 링 밖으로
+// 자연스럽게 삐져나오게 한다. 이전 버전은 몸통이 위쪽으로 치우쳐 있어 링 중심과 어긋나 보였다.
+const SQUID_CENTER_X = 85;
+const SQUID_CENTER_Y = 45;
+const SQUID_MANTLE_RX = 27;
+const SQUID_MANTLE_RY = 24;
+const SQUID_TENTACLE_COUNT = 7;
+const SQUID_TENTACLE_BASE_Y = SQUID_CENTER_Y + SQUID_MANTLE_RY - 3; // 몸통 아랫단과 살짝 겹쳐 이음매 없이 연결
+const SQUID_BODY_ORIGIN = `${SQUID_CENTER_X} ${SQUID_CENTER_Y}`;
+const SQUID_TAIL_ORIGIN = `${SQUID_CENTER_X} ${SQUID_TENTACLE_BASE_Y}`;
+
+// 오징어 — 잡으면 안 되는 미끼. 참고 이미지 느낌(동그란 몸통 + 귀 지느러미 + 두꺼운
+// 외곽선 + 아래로 늘어진 스캘럽 촉수)의 플랫 스티커 아이콘 스타일로 그린다.
+// 손으로 좌표를 일일이 맞춘 베지어 곡선 대신 원/타원 위주로 구성해 비율이 삐뚤어지지 않게 했다.
+function SquidShape({ tailRef }: { tailRef: RefObject<SVGGElement | null> }) {
   const c = SQUID_COLORS;
-  const headX = 78;
-  const headY = 46;
+  const earY = SQUID_CENTER_Y - SQUID_MANTLE_RY + 11;
+
+  const tentacles = Array.from({ length: SQUID_TENTACLE_COUNT }, (_, i) => {
+    const t = i / (SQUID_TENTACLE_COUNT - 1);
+    const cx = 58 + t * 54; // 58 ~ 112
+    const isLong = i % 2 === 0;
+    const tipY = SQUID_TENTACLE_BASE_Y + (isLong ? 20 : 12);
+    const halfW = 6.5;
+    const midY = (SQUID_TENTACLE_BASE_Y + tipY) / 2;
+    const d = `M${(cx - halfW).toFixed(1)},${SQUID_TENTACLE_BASE_Y} Q${(cx - halfW - 1.5).toFixed(1)},${midY.toFixed(1)} ${cx.toFixed(1)},${tipY} Q${(cx + halfW + 1.5).toFixed(1)},${midY.toFixed(1)} ${(cx + halfW).toFixed(1)},${SQUID_TENTACLE_BASE_Y} Z`;
+    return { d, fill: isLong ? c.tentacleDark : c.tentacleLight };
+  });
+
   return (
     <>
-      <defs>
-        <linearGradient id={gradientId} x1="72" y1="26" x2="146" y2="64" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor={c.gradientFrom} />
-          <stop offset="0.55" stopColor={c.gradientMid} />
-          <stop offset="1" stopColor={c.gradientTo} />
-        </linearGradient>
-      </defs>
-      {/* 촉수 (다리) — 머리 한 점에서 부채꼴로 퍼진다 */}
-      <path d={`M${headX},${headY - 5} Q50,24 24,21`} stroke={c.gradientTo} strokeWidth="3.2" fill="none" strokeLinecap="round" />
-      <path d={`M${headX},${headY - 2} Q52,32 21,32`} stroke={c.gradientTo} strokeWidth="3.2" fill="none" strokeLinecap="round" />
-      <path d={`M${headX},${headY + 1} Q54,45 19,45`} stroke={c.gradientTo} strokeWidth="3.2" fill="none" strokeLinecap="round" />
-      <path d={`M${headX},${headY + 4} Q52,56 20,58`} stroke={c.gradientTo} strokeWidth="3.2" fill="none" strokeLinecap="round" />
-      <path d={`M${headX},${headY + 7} Q50,64 23,70`} stroke={c.gradientTo} strokeWidth="3.2" fill="none" strokeLinecap="round" />
-      {/* 몸통(외투막) — 매끈한 타원으로 통일해 삐뚤어 보이지 않게 한다 */}
-      <ellipse cx="108" cy="45" rx="37" ry="19" fill={`url(#${gradientId})`} stroke={c.stroke} strokeWidth="2" />
-      {/* 꼬리 지느러미 — 몸통 위에 그려서 확실히 붙어 보인다. flutter 애니메이션 대상 */}
+      {/* 촉수 — 몸통 아래로 늘어져 스캘럽(물결) 테두리를 만든다. flutter 애니메이션 대상.
+          기준점(SQUID_TAIL_ORIGIN)이 촉수가 몸통에 붙는 지점이라 회전해도 자연스럽게 살랑거린다. */}
       <g ref={tailRef}>
-        <path d="M136,29 Q157,16 149,37 Z" fill={c.gradientMid} stroke={c.stroke} strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M136,61 Q157,74 149,53 Z" fill={c.gradientMid} stroke={c.stroke} strokeWidth="1.5" strokeLinejoin="round" />
+        {tentacles.map((tentacle, i) => (
+          <path key={i} d={tentacle.d} fill={tentacle.fill} stroke={c.outline} strokeWidth="2.2" strokeLinejoin="round" />
+        ))}
       </g>
-      {/* 능청스러운 표정 — 항상 고정 */}
-      <circle cx="88" cy="39" r="9" fill="white" stroke={c.stroke} strokeWidth="1.5" />
-      <ellipse cx="86" cy="40" rx="4" ry="5" fill="#0f172a" />
-      <path d="M80,53 Q88,58 97,53" stroke={c.stroke} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      {/* 귀 모양 지느러미 — 몸통에 가려 끝만 보이도록 몸통보다 먼저 그린다 */}
+      <ellipse cx="60" cy={earY} rx="11" ry="7" fill={c.ear} stroke={c.outline} strokeWidth="2.5" transform={`rotate(-35 60 ${earY})`} />
+      <ellipse cx="110" cy={earY} rx="11" ry="7" fill={c.ear} stroke={c.outline} strokeWidth="2.5" transform={`rotate(35 110 ${earY})`} />
+      {/* 몸통(외투막) — 매끈한 타원 두 겹(본체 + 하이라이트)으로만 구성해 비율이 항상 둥글게 유지된다.
+          중심이 뷰박스 정중앙(SQUID_CENTER_Y)이라 그물 링과 자연스럽게 맞아떨어진다. */}
+      <ellipse cx={SQUID_CENTER_X} cy={SQUID_CENTER_Y} rx={SQUID_MANTLE_RX} ry={SQUID_MANTLE_RY} fill={c.mantle} stroke={c.outline} strokeWidth="3" />
+      <ellipse cx={SQUID_CENTER_X} cy={SQUID_CENTER_Y - 2} rx="15" ry="17" fill={c.mantleHighlight} />
+      {/* 능청스러운 표정 — 항상 고정 (점 두 개) */}
+      <circle cx="76" cy={SQUID_CENTER_Y + 7} r="3.8" fill={c.outline} />
+      <circle cx="94" cy={SQUID_CENTER_Y + 7} r="3.8" fill={c.outline} />
     </>
   );
 }
+
+// 종마다 몸통 중심/부속지 관절 위치가 다르므로 애니메이션 회전축도 종별로 따로 지정한다.
+const ANIMATION_ORIGINS: Record<CreatureKind, AnimationOrigins> = {
+  yellowtail: { body: "70 45", tail: "118 45" },
+  pufferfish: { body: "92 45", tail: "120 45" },
+  squid: { body: SQUID_BODY_ORIGIN, tail: SQUID_TAIL_ORIGIN },
+};
 
 function Fish({ phase, round, kind, size, expression, flapSpeed, jumpDurationMs, onCatch }: FishProps) {
   const bodyRef = useRef<SVGGElement>(null);
   const tailRef = useRef<SVGGElement>(null);
   const refs: FishRefs = { body: bodyRef, tail: tailRef };
-  const { playIdle, playJump, playCatch, killAll } = useFishAnimations(refs);
+  const { playIdle, playJump, playCatch, killAll } = useFishAnimations(refs, ANIMATION_ORIGINS[kind]);
   const gradientId = useId();
 
   useEffect(() => {
@@ -215,7 +243,13 @@ function Fish({ phase, round, kind, size, expression, flapSpeed, jumpDurationMs,
       viewBox="0 0 170 90"
       width={Math.round(BASE_WIDTH * scale)}
       height={Math.round(BASE_HEIGHT * scale)}
-      className={clickable ? "cursor-pointer drop-shadow-md" : "pointer-events-none drop-shadow-md"}
+      // overflow-visible: 점프/팔딱임 애니메이션이 body g를 회전·이동시킬 때 그림이
+      // 자기 viewBox 밖으로 나가는데, svg 기본값(hidden)이면 그 부분이 잘려 보인다.
+      className={
+        clickable
+          ? "cursor-pointer overflow-visible drop-shadow-md"
+          : "pointer-events-none overflow-visible drop-shadow-md"
+      }
       onClick={clickable ? onCatch : undefined}
       role={clickable ? "button" : undefined}
       aria-label={clickable ? label : undefined}
@@ -223,7 +257,7 @@ function Fish({ phase, round, kind, size, expression, flapSpeed, jumpDurationMs,
       <g ref={bodyRef}>
         {kind === "yellowtail" && <YellowtailShape gradientId={gradientId} expression={expression} tailRef={tailRef} />}
         {kind === "pufferfish" && <PufferShape gradientId={gradientId} tailRef={tailRef} />}
-        {kind === "squid" && <SquidShape gradientId={gradientId} tailRef={tailRef} />}
+        {kind === "squid" && <SquidShape tailRef={tailRef} />}
       </g>
     </svg>
   );
