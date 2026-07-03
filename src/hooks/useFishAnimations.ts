@@ -6,18 +6,23 @@ export interface FishRefs {
   tail: RefObject<SVGGElement | null>;
 }
 
-// 몸통 g는 타원 중심, 꼬리 g는 몸통과 맞닿는 관절을 축으로 회전/스케일한다.
-const BODY_ORIGIN = "70 45";
-const TAIL_ORIGIN = "118 45";
+// 몸통 g는 몸통 중심, 꼬리(또는 촉수 등 부속지) g는 몸통과 맞닿는 관절을 축으로
+// 회전/스케일해야 자연스럽다. 종마다 실루엣이 다르므로 호출하는 쪽(Fish.tsx)에서
+// 각 종의 실제 좌표에 맞는 pivot을 넘겨준다 — 하드코딩하면 다른 모양에 재사용할 때
+// 엉뚱한 지점을 축으로 돌아 촉수/지느러미가 크게 휘청거리는 문제가 생긴다.
+export interface AnimationOrigins {
+  body: string; // "cx cy" — svgOrigin 형식
+  tail: string;
+}
 
-export function useFishAnimations(refs: FishRefs) {
+export function useFishAnimations(refs: FishRefs, origins: AnimationOrigins) {
   const activeTweens = useRef<(gsap.core.Tween | gsap.core.Timeline)[]>([]);
 
   useEffect(() => {
-    if (refs.body.current) gsap.set(refs.body.current, { svgOrigin: BODY_ORIGIN });
-    if (refs.tail.current) gsap.set(refs.tail.current, { svgOrigin: TAIL_ORIGIN });
+    if (refs.body.current) gsap.set(refs.body.current, { svgOrigin: origins.body });
+    if (refs.tail.current) gsap.set(refs.tail.current, { svgOrigin: origins.tail });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [origins.body, origins.tail]);
 
   function killAll() {
     for (const tween of activeTweens.current) tween.kill();
