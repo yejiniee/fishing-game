@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  font: 16px/145% system-ui, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+body {
+  margin: 0;
+  overscroll-behavior: none;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+@keyframes grab-ring-countdown {
+  from {
+    stroke-dashoffset: 0;
+    stroke: #22c55e;
+  }
+  60% {
+    stroke: #eab308;
+  }
+  to {
+    stroke-dashoffset: 214;
+    stroke: #ef4444;
+  }
+}
+
+.grab-ring {
+  animation-name: grab-ring-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes toast-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.85);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.95);
+  }
+}
+
+.toast-pop {
+  animation: toast-pop 0.9s ease-out forwards;
+}
