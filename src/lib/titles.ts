@@ -6,9 +6,9 @@ export interface TitleTier {
 // 잡은 마릿수(catchCount) 기준 칭호. 40마리 단위 구간으로, 낮은 임계값부터 순서대로 정의한다.
 export const TITLE_TIERS: readonly TitleTier[] = [
   { minCatches: 0, title: "방어잡다 번아웃 온 사장님" },
-  { minCatches: 41, title: "동네 횟집 사장님" },
-  { minCatches: 81, title: "오마카세 사장님" },
-  { minCatches: 121, title: "방어잡기의 신" },
+  { minCatches: 31, title: "동네 횟집 사장님" },
+  { minCatches: 41, title: "오마카세 사장님" },
+  { minCatches: 51, title: "방어잡기의 신" },
 ];
 
 export function titleForCatches(catchCount: number): string {
