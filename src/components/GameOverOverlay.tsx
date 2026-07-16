@@ -113,7 +113,16 @@ function GameOverOverlay({
           </p>
         )}
 
-        {/* 랭킹 영역 */}
+        {/* 결과 카드 + [재도전][공유하기] 버튼 한 줄 (위) */}
+        <ShareCard
+          score={score}
+          catchCount={catchCount}
+          title={title}
+          nickname={nickname}
+          onRestart={onRestart}
+        />
+
+        {/* 랭킹 영역 (아래) */}
         {isRankingEnabled &&
           (editingNickname ? (
             <NicknameInput
@@ -147,15 +156,6 @@ function GameOverOverlay({
               </button>
             </>
           ))}
-
-        {/* 결과 카드 + [재도전][공유하기] 버튼 한 줄 */}
-        <ShareCard
-          score={score}
-          catchCount={catchCount}
-          title={title}
-          nickname={nickname}
-          onRestart={onRestart}
-        />
       </div>
     </div>
   );
