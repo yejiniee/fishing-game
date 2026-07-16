@@ -148,20 +148,14 @@ function GameOverOverlay({
             </>
           ))}
 
-        {/* 결과 카드·공유·다시하기 */}
+        {/* 결과 카드 + [재도전][공유하기] 버튼 한 줄 */}
         <ShareCard
           score={score}
           catchCount={catchCount}
           title={title}
           nickname={nickname}
+          onRestart={onRestart}
         />
-
-        <button
-          onClick={onRestart}
-          className="mt-1 rounded-full bg-amber-400 px-8 py-3 text-lg font-extrabold text-slate-900 shadow-lg transition active:scale-95"
-        >
-          다시하기
-        </button>
       </div>
     </div>
   );

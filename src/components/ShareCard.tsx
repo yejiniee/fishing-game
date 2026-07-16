@@ -11,10 +11,17 @@ interface ShareCardProps {
   catchCount: number;
   title: string;
   nickname?: string | null;
+  onRestart: () => void;
 }
 
-// 결과 카드 + 공유 버튼. 카드 DOM(cardRef)만 이미지로 캡처하고, 버튼은 캡처에서 제외한다. (PRD §3.9)
-function ShareCard({ score, catchCount, title, nickname }: ShareCardProps) {
+// 결과 카드 + [재도전][공유하기] 버튼 한 줄. 카드 DOM(cardRef)만 이미지로 캡처하고, 버튼은 캡처에서 제외한다. (PRD §3.9)
+function ShareCard({
+  score,
+  catchCount,
+  title,
+  nickname,
+  onRestart,
+}: ShareCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
@@ -68,13 +75,21 @@ function ShareCard({ score, catchCount, title, nickname }: ShareCardProps) {
         </div>
       </div>
 
-      <button
-        onClick={handleShare}
-        disabled={busy}
-        className="rounded-full bg-sky-500 px-6 py-2.5 text-sm font-extrabold text-white shadow transition active:scale-95 disabled:opacity-60"
-      >
-        {busy ? "만드는 중…" : "📤 결과 공유하기"}
-      </button>
+      <div className="flex w-64 gap-2">
+        <button
+          onClick={onRestart}
+          className="flex-1 rounded-full bg-amber-400 px-4 py-2.5 text-sm font-extrabold text-slate-900 shadow transition active:scale-95"
+        >
+          🔄 재도전
+        </button>
+        <button
+          onClick={handleShare}
+          disabled={busy}
+          className="flex-1 rounded-full bg-sky-500 px-4 py-2.5 text-sm font-extrabold text-white shadow transition active:scale-95 disabled:opacity-60"
+        >
+          {busy ? "만드는 중…" : "📤 공유하기"}
+        </button>
+      </div>
       {error && (
         <p className="text-xs text-rose-300">공유에 실패했어요. 다시 시도해주세요.</p>
       )}
