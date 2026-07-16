@@ -57,3 +57,19 @@ export async function fetchTopScores(limit = 20): Promise<RankingEntry[]> {
   if (error) throw error;
   return (data as ScoreRow[]).map(rowToEntry);
 }
+
+// 내 기록의 전체 순위(1-based). 나보다 상위(마릿수 큼 또는 마릿수 같고 점수 큼)인 기록 수 + 1.
+// TOP N에 못 든 경우 "내 순위 NN위"를 안내하는 데 쓴다. 비활성이면 null.
+export async function fetchMyRank(entry: RankingEntry): Promise<number | null> {
+  if (!supabase) return null;
+
+  const { count, error } = await supabase
+    .from("scores")
+    .select("*", { count: "exact", head: true })
+    .or(
+      `catch_count.gt.${entry.catchCount},and(catch_count.eq.${entry.catchCount},score.gt.${entry.score})`,
+    );
+
+  if (error) throw error;
+  return (count ?? 0) + 1;
+}

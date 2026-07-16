@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fetchTopScores, rowToEntry, submitScore } from "../ranking";
+import { fetchMyRank, fetchTopScores, rowToEntry, submitScore } from "../ranking";
 
 // 테스트 환경에는 VITE_SUPABASE_* 가 없어 supabase 클라이언트가 null(랭킹 비활성)이다.
 // 이때 API가 네트워크 없이 안전한 기본값을 반환하는지 확인한다.
@@ -34,5 +34,17 @@ describe("랭킹 비활성 환경", () => {
 
   it("fetchTopScores는 빈 배열을 반환한다", async () => {
     await expect(fetchTopScores()).resolves.toEqual([]);
+  });
+
+  it("fetchMyRank는 null을 반환한다", async () => {
+    const entry = rowToEntry({
+      id: "x",
+      device_id: "d",
+      nickname: "나",
+      score: 1,
+      catch_count: 1,
+      created_at: "2026-07-16T00:00:00Z",
+    });
+    await expect(fetchMyRank(entry)).resolves.toBeNull();
   });
 });
