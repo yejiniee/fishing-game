@@ -7,6 +7,7 @@ interface RankingBoardProps {
   myDeviceId: string; // 내 행 하이라이트용
   myEntry?: RankingEntry | null; // 방금 등록한 내 기록 (TOP N 밖이면 순위 계산에 사용)
   limit?: number;
+  onEditNickname?: () => void; // 있으면 헤더 오른쪽에 "이름 변경" 버튼을 보여준다
 }
 
 type Status = "loading" | "error" | "ready";
@@ -17,7 +18,12 @@ function rankLabel(index: number): string {
   return MEDALS[index] ?? `${index + 1}`;
 }
 
-function RankingBoard({ myDeviceId, myEntry, limit = 20 }: RankingBoardProps) {
+function RankingBoard({
+  myDeviceId,
+  myEntry,
+  limit = 20,
+  onEditNickname,
+}: RankingBoardProps) {
   const [status, setStatus] = useState<Status>("loading");
   const [entries, setEntries] = useState<RankingEntry[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
@@ -61,7 +67,17 @@ function RankingBoard({ myDeviceId, myEntry, limit = 20 }: RankingBoardProps) {
 
   return (
     <div className="flex w-full max-w-xs flex-col gap-2 rounded-2xl bg-white/95 p-4 text-slate-800 shadow-lg">
-      <h3 className="text-center text-sm font-extrabold">🏆 랭킹</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-extrabold">🏆 랭킹</h3>
+        {onEditNickname && (
+          <button
+            onClick={onEditNickname}
+            className="text-xs text-slate-500 underline"
+          >
+            이름 변경
+          </button>
+        )}
+      </div>
 
       {!isRankingEnabled ? (
         <p className="py-4 text-center text-xs text-slate-400">

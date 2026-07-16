@@ -125,7 +125,7 @@ function GameOverOverlay({
 
           {/* 랭킹 영역 (아래) — 이름 변경 중에도 화면 그대로 유지, 입력은 모달로 띄운다 */}
           {isRankingEnabled && (
-            <>
+            <div className="mt-2.5 flex w-full flex-col items-center gap-2.5">
               {submitState === "submitting" && (
                 <p className="text-xs text-white/70">랭킹에 등록하는 중…</p>
               )}
@@ -140,14 +140,12 @@ function GameOverOverlay({
                   </button>
                 </div>
               )}
-              <RankingBoard myDeviceId={deviceId} myEntry={myEntry} />
-              <button
-                onClick={() => setEditingNickname(true)}
-                className="text-xs text-white/70 underline"
-              >
-                이름 변경
-              </button>
-            </>
+              <RankingBoard
+                myDeviceId={deviceId}
+                myEntry={myEntry}
+                onEditNickname={() => setEditingNickname(true)}
+              />
+            </div>
           )}
         </div>
       </div>
