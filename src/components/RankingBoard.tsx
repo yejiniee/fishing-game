@@ -74,7 +74,7 @@ function RankingBoard({
             onClick={onEditNickname}
             className="text-xs text-slate-500 underline"
           >
-            이름 변경
+            닉네임 변경
           </button>
         )}
       </div>
