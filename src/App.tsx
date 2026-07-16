@@ -45,7 +45,6 @@ function App() {
             <GameOverOverlay
               score={score}
               catchCount={catchCount}
-              best={best}
               onRestart={start}
             />
           )}
