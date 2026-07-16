@@ -60,17 +60,23 @@ function ShareCard({
         <div className="rounded-full bg-white/70 px-4 py-1 text-xs font-extrabold text-amber-700 shadow-sm">
           🏅 {title}
         </div>
-        <div className="mt-1 flex items-end justify-center gap-6 text-slate-800">
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-[10px] font-bold text-slate-500">잡은 방어</span>
-            <span className="text-2xl font-black leading-none">
+        <div className="mt-1 flex flex-col items-center gap-1 text-slate-800">
+          <div className="flex justify-center gap-6">
+            <span className="w-16 text-center text-[10px] font-bold text-slate-500">
+              잡은 방어
+            </span>
+            <span className="w-16 text-center text-[10px] font-bold text-slate-500">
+              점수
+            </span>
+          </div>
+          <div className="flex items-baseline justify-center gap-6">
+            <span className="w-16 text-center text-2xl font-black leading-none">
               {catchCount}
               <span className="text-sm">마리</span>
             </span>
-          </div>
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-[10px] font-bold text-slate-500">점수</span>
-            <span className="text-2xl font-black leading-none">{score}</span>
+            <span className="w-16 text-center text-2xl font-black leading-none">
+              {score}
+            </span>
           </div>
         </div>
       </div>
