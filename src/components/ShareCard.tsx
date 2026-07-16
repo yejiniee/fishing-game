@@ -78,16 +78,16 @@ function ShareCard({
       <div className="flex w-64 gap-2">
         <button
           onClick={onRestart}
-          className="flex-1 rounded-full bg-amber-400 px-4 py-2.5 text-sm font-extrabold text-slate-900 shadow transition active:scale-95"
+          className="flex-1 rounded-full bg-white/90 px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-white active:scale-95"
         >
-          🔄 재도전
+          재도전
         </button>
         <button
           onClick={handleShare}
           disabled={busy}
-          className="flex-1 rounded-full bg-sky-500 px-4 py-2.5 text-sm font-extrabold text-white shadow transition active:scale-95 disabled:opacity-60"
+          className="flex-1 rounded-full bg-sky-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-sky-600 active:scale-95 disabled:opacity-60"
         >
-          {busy ? "만드는 중…" : "📤 공유하기"}
+          {busy ? "만드는 중…" : "공유하기"}
         </button>
       </div>
       {error && (
