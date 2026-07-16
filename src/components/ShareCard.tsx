@@ -11,10 +11,17 @@ interface ShareCardProps {
   catchCount: number;
   title: string;
   nickname?: string | null;
+  onRestart: () => void;
 }
 
-// 결과 카드 + 공유 버튼. 카드 DOM(cardRef)만 이미지로 캡처하고, 버튼은 캡처에서 제외한다. (PRD §3.9)
-function ShareCard({ score, catchCount, title, nickname }: ShareCardProps) {
+// 결과 카드 + [재도전][공유하기] 버튼 한 줄. 카드 DOM(cardRef)만 이미지로 캡처하고, 버튼은 캡처에서 제외한다. (PRD §3.9)
+function ShareCard({
+  score,
+  catchCount,
+  title,
+  nickname,
+  onRestart,
+}: ShareCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
@@ -50,31 +57,45 @@ function ShareCard({ score, catchCount, title, nickname }: ShareCardProps) {
         {nickname && (
           <span className="text-sm font-bold text-slate-700">{nickname}</span>
         )}
-        <div className="rounded-full bg-white/70 px-4 py-1 text-sm font-extrabold text-amber-700 shadow-sm">
+        <div className="rounded-full bg-white/70 px-4 py-1 text-xs font-extrabold text-amber-700 shadow-sm">
           🏅 {title}
         </div>
-        <div className="mt-1 flex items-end gap-4 text-slate-800">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-500">잡은 방어</span>
-            <span className="text-2xl font-black leading-none">
+        <div className="mt-1 flex flex-col items-center gap-1 text-slate-800">
+          <div className="flex justify-center gap-6">
+            <span className="w-16 text-center text-[10px] font-bold text-slate-500">
+              잡은 방어
+            </span>
+            <span className="w-16 text-center text-[10px] font-bold text-slate-500">
+              점수
+            </span>
+          </div>
+          <div className="flex items-baseline justify-center gap-6">
+            <span className="w-16 text-center text-2xl font-black leading-none">
               {catchCount}
               <span className="text-sm">마리</span>
             </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-500">점수</span>
-            <span className="text-2xl font-black leading-none">{score}</span>
+            <span className="w-16 text-center text-2xl font-black leading-none">
+              {score}
+            </span>
           </div>
         </div>
       </div>
 
-      <button
-        onClick={handleShare}
-        disabled={busy}
-        className="rounded-full bg-sky-500 px-6 py-2.5 text-sm font-extrabold text-white shadow transition active:scale-95 disabled:opacity-60"
-      >
-        {busy ? "만드는 중…" : "📤 결과 공유하기"}
-      </button>
+      <div className="flex w-64 gap-2">
+        <button
+          onClick={onRestart}
+          className="flex-1 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-slate-200 active:scale-95"
+        >
+          재도전
+        </button>
+        <button
+          onClick={handleShare}
+          disabled={busy}
+          className="flex-1 rounded-full bg-sky-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-sky-600 active:scale-95 disabled:opacity-60"
+        >
+          {busy ? "만드는 중…" : "공유하기"}
+        </button>
+      </div>
       {error && (
         <p className="text-xs text-rose-300">공유에 실패했어요. 다시 시도해주세요.</p>
       )}

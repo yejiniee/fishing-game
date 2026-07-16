@@ -24,15 +24,18 @@ function App() {
     <div className="fixed inset-0 flex justify-center bg-slate-800">
       {/* 모바일 고정 프레임 — 프레임 밖은 단색 여백 */}
       <div className="relative flex h-dvh w-full max-w-[430px] flex-col gap-3 bg-slate-800 p-3">
-        <header>
-          <Hud
-            score={score}
-            best={best}
-            lives={lives}
-            maxLives={maxLives}
-            combo={combo}
-          />
-        </header>
+        {/* 결과 화면에서는 상단 SCORE/BEST 바를 숨겨 여유 공간을 확보한다 */}
+        {phase !== "gameover" && (
+          <header>
+            <Hud
+              score={score}
+              best={best}
+              lives={lives}
+              maxLives={maxLives}
+              combo={combo}
+            />
+          </header>
+        )}
         <main className="relative flex-1">
           <GameStage
             fish={fish}
@@ -45,7 +48,6 @@ function App() {
             <GameOverOverlay
               score={score}
               catchCount={catchCount}
-              best={best}
               onRestart={start}
             />
           )}
