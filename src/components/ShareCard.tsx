@@ -57,7 +57,7 @@ function ShareCard({
         {nickname && (
           <span className="text-sm font-bold text-slate-700">{nickname}</span>
         )}
-        <div className="rounded-full bg-white/70 px-4 py-1 text-sm font-extrabold text-amber-700 shadow-sm">
+        <div className="rounded-full bg-white/70 px-4 py-1 text-xs font-extrabold text-amber-700 shadow-sm">
           🏅 {title}
         </div>
         <div className="mt-1 flex items-end gap-4 text-slate-800">
