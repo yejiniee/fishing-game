@@ -71,6 +71,34 @@ function GameOverOverlay({
   const isInitialNicknameEntry =
     isRankingEnabled && editingNickname && nickname === null;
 
+  if (isInitialNicknameEntry) {
+    // 최초 닉네임 입력: 입력 컴포넌트를 프레임 세로 정중앙에 둔다.
+    // 위·아래 flex-1 스페이서가 같은 높이를 차지해 가운데의 NicknameInput이 정확히 중앙에 온다.
+    return (
+      <div className="absolute inset-0 z-30 flex flex-col items-center gap-3 overflow-y-auto rounded-3xl bg-slate-900/60 px-4 backdrop-blur-sm">
+        {/* 위·아래 flex-1 스페이서가 같은 높이를 차지하고, 바깥 gap-3이 카드 위아래 간격을
+            대칭으로 주어 NicknameInput이 정확히 세로 중앙에 온다. */}
+        <div className="flex flex-1 flex-col items-center justify-end gap-2.5 text-center">
+          <span className="text-4xl">🎣</span>
+          <h2 className="text-2xl font-extrabold text-white drop-shadow">
+            놓쳤다! 게임 종료
+          </h2>
+          {gap && (
+            <p className="text-xs text-white/70">
+              다음 칭호 「{gap.title}」까지 {gap.remaining}마리
+            </p>
+          )}
+        </div>
+        <NicknameInput
+          initialValue={nickname ?? ""}
+          onSubmit={handleNicknameSubmit}
+          submitLabel="랭킹 등록"
+        />
+        <div className="flex-1" />
+      </div>
+    );
+  }
+
   return (
     <div className="absolute inset-0 z-30 flex flex-col overflow-y-auto rounded-3xl bg-slate-900/60 backdrop-blur-sm">
       {/* m-auto: 내용이 짧으면 세로 중앙 정렬, 길면 스크롤(상단 잘림 없이) */}
@@ -120,24 +148,20 @@ function GameOverOverlay({
             </>
           ))}
 
-        {/* 결과 카드·공유·다시하기 — 최초 닉네임 등록 전에는 숨긴다 */}
-        {!isInitialNicknameEntry && (
-          <>
-            <ShareCard
-              score={score}
-              catchCount={catchCount}
-              title={title}
-              nickname={nickname}
-            />
+        {/* 결과 카드·공유·다시하기 */}
+        <ShareCard
+          score={score}
+          catchCount={catchCount}
+          title={title}
+          nickname={nickname}
+        />
 
-            <button
-              onClick={onRestart}
-              className="mt-1 rounded-full bg-amber-400 px-8 py-3 text-lg font-extrabold text-slate-900 shadow-lg transition active:scale-95"
-            >
-              다시하기
-            </button>
-          </>
-        )}
+        <button
+          onClick={onRestart}
+          className="mt-1 rounded-full bg-amber-400 px-8 py-3 text-lg font-extrabold text-slate-900 shadow-lg transition active:scale-95"
+        >
+          다시하기
+        </button>
       </div>
     </div>
   );
