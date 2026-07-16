@@ -72,70 +72,73 @@ function GameOverOverlay({
     isRankingEnabled && editingNickname && nickname === null;
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col items-center gap-2.5 overflow-y-auto rounded-3xl bg-slate-900/60 px-4 py-6 text-center backdrop-blur-sm">
-      <span className="text-4xl">🎣</span>
-      <h2 className="text-2xl font-extrabold text-white drop-shadow">
-        놓쳤다! 게임 종료
-      </h2>
-      {gap && (
-        <p className="text-xs text-white/70">
-          다음 칭호 「{gap.title}」까지 {gap.remaining}마리
-        </p>
-      )}
+    <div className="absolute inset-0 z-30 flex flex-col overflow-y-auto rounded-3xl bg-slate-900/60 backdrop-blur-sm">
+      {/* m-auto: 내용이 짧으면 세로 중앙 정렬, 길면 스크롤(상단 잘림 없이) */}
+      <div className="m-auto flex w-full flex-col items-center gap-2.5 px-4 py-6 text-center">
+        <span className="text-4xl">🎣</span>
+        <h2 className="text-2xl font-extrabold text-white drop-shadow">
+          놓쳤다! 게임 종료
+        </h2>
+        {gap && (
+          <p className="text-xs text-white/70">
+            다음 칭호 「{gap.title}」까지 {gap.remaining}마리
+          </p>
+        )}
 
-      {/* 랭킹 영역 */}
-      {isRankingEnabled &&
-        (editingNickname ? (
-          <NicknameInput
-            initialValue={nickname ?? ""}
-            onSubmit={handleNicknameSubmit}
-            onCancel={nickname ? () => setEditingNickname(false) : undefined}
-            submitLabel={nickname ? "저장" : "랭킹 등록"}
-          />
-        ) : (
+        {/* 랭킹 영역 */}
+        {isRankingEnabled &&
+          (editingNickname ? (
+            <NicknameInput
+              initialValue={nickname ?? ""}
+              onSubmit={handleNicknameSubmit}
+              onCancel={nickname ? () => setEditingNickname(false) : undefined}
+              submitLabel={nickname ? "저장" : "랭킹 등록"}
+            />
+          ) : (
+            <>
+              {submitState === "submitting" && (
+                <p className="text-xs text-white/70">랭킹에 등록하는 중…</p>
+              )}
+              {submitState === "error" && nickname && (
+                <div className="flex flex-col items-center gap-1">
+                  <p className="text-xs text-rose-300">랭킹 등록에 실패했어요.</p>
+                  <button
+                    onClick={() => register(nickname)}
+                    className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white transition active:scale-95"
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              )}
+              <RankingBoard myDeviceId={deviceId} myEntry={myEntry} />
+              <button
+                onClick={() => setEditingNickname(true)}
+                className="text-xs text-white/70 underline"
+              >
+                이름 변경
+              </button>
+            </>
+          ))}
+
+        {/* 결과 카드·공유·다시하기 — 최초 닉네임 등록 전에는 숨긴다 */}
+        {!isInitialNicknameEntry && (
           <>
-            {submitState === "submitting" && (
-              <p className="text-xs text-white/70">랭킹에 등록하는 중…</p>
-            )}
-            {submitState === "error" && nickname && (
-              <div className="flex flex-col items-center gap-1">
-                <p className="text-xs text-rose-300">랭킹 등록에 실패했어요.</p>
-                <button
-                  onClick={() => register(nickname)}
-                  className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white transition active:scale-95"
-                >
-                  다시 시도
-                </button>
-              </div>
-            )}
-            <RankingBoard myDeviceId={deviceId} myEntry={myEntry} />
+            <ShareCard
+              score={score}
+              catchCount={catchCount}
+              title={title}
+              nickname={nickname}
+            />
+
             <button
-              onClick={() => setEditingNickname(true)}
-              className="text-xs text-white/70 underline"
+              onClick={onRestart}
+              className="mt-1 rounded-full bg-amber-400 px-8 py-3 text-lg font-extrabold text-slate-900 shadow-lg transition active:scale-95"
             >
-              이름 변경
+              다시하기
             </button>
           </>
-        ))}
-
-      {/* 결과 카드·공유·다시하기 — 최초 닉네임 등록 전에는 숨긴다 */}
-      {!isInitialNicknameEntry && (
-        <>
-          <ShareCard
-            score={score}
-            catchCount={catchCount}
-            title={title}
-            nickname={nickname}
-          />
-
-          <button
-            onClick={onRestart}
-            className="mt-1 rounded-full bg-amber-400 px-8 py-3 text-lg font-extrabold text-slate-900 shadow-lg transition active:scale-95"
-          >
-            다시하기
-          </button>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }
