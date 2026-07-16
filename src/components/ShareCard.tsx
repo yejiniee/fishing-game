@@ -78,7 +78,7 @@ function ShareCard({
       <div className="flex w-64 gap-2">
         <button
           onClick={onRestart}
-          className="flex-1 rounded-full bg-white/90 px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-white active:scale-95"
+          className="flex-1 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-slate-200 active:scale-95"
         >
           재도전
         </button>
