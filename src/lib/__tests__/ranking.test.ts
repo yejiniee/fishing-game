@@ -1,8 +1,14 @@
-import { describe, expect, it } from "vitest";
-import { fetchMyRank, fetchTopScores, rowToEntry, submitScore } from "../ranking";
+import { describe, expect, it, vi } from "vitest";
 
-// 테스트 환경에는 VITE_SUPABASE_* 가 없어 supabase 클라이언트가 null(랭킹 비활성)이다.
-// 이때 API가 네트워크 없이 안전한 기본값을 반환하는지 확인한다.
+// supabase 클라이언트를 비활성(null)으로 고정한다.
+// 이렇게 하지 않으면 .env에 실제 키가 있을 때 테스트가 실제 Supabase로 네트워크 요청을 보내
+// 결과가 비결정적이 되고, submitScore가 실 DB에 기록을 남기는 부작용이 생긴다.
+vi.mock("../supabase", () => ({
+  supabase: null,
+  isRankingEnabled: false,
+}));
+
+import { fetchMyRank, fetchTopScores, rowToEntry, submitScore } from "../ranking";
 
 describe("rowToEntry", () => {
   it("snake_case DB 행을 camelCase 엔트리로 매핑한다", () => {
@@ -25,8 +31,8 @@ describe("rowToEntry", () => {
   });
 });
 
-describe("랭킹 비활성 환경", () => {
-  it("submitScore는 null을 반환한다", async () => {
+describe("랭킹 비활성 환경(supabase 없음)", () => {
+  it("submitScore는 null을 반환한다 (네트워크 요청 없음)", async () => {
     await expect(
       submitScore({ nickname: "테스터", score: 10, catchCount: 5 }),
     ).resolves.toBeNull();
