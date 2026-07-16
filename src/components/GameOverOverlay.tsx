@@ -100,38 +100,31 @@ function GameOverOverlay({
   }
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col overflow-y-auto rounded-3xl bg-slate-900/60 backdrop-blur-sm">
-      {/* m-auto: 내용이 짧으면 세로 중앙 정렬, 길면 스크롤(상단 잘림 없이) */}
-      <div className="m-auto flex w-full flex-col items-center gap-2.5 px-4 py-6 text-center">
-        <span className="text-4xl">🎣</span>
-        <h2 className="text-2xl font-extrabold text-white drop-shadow">
-          놓쳤다! 게임 종료
-        </h2>
-        {gap && (
-          <p className="text-xs text-white/70">
-            다음 칭호 「{gap.title}」까지 {gap.remaining}마리
-          </p>
-        )}
+    <>
+      <div className="absolute inset-0 z-30 flex flex-col overflow-y-auto rounded-3xl bg-slate-900/60 backdrop-blur-sm">
+        {/* m-auto: 내용이 짧으면 세로 중앙 정렬, 길면 스크롤(상단 잘림 없이) */}
+        <div className="m-auto flex w-full flex-col items-center gap-2.5 px-4 py-6 text-center">
+          <span className="text-4xl">🎣</span>
+          <h2 className="text-2xl font-extrabold text-white drop-shadow">
+            놓쳤다! 게임 종료
+          </h2>
+          {gap && (
+            <p className="text-xs text-white/70">
+              다음 칭호 「{gap.title}」까지 {gap.remaining}마리
+            </p>
+          )}
 
-        {/* 결과 카드 + [재도전][공유하기] 버튼 한 줄 (위) */}
-        <ShareCard
-          score={score}
-          catchCount={catchCount}
-          title={title}
-          nickname={nickname}
-          onRestart={onRestart}
-        />
+          {/* 결과 카드 + [재도전][공유하기] 버튼 한 줄 (위) */}
+          <ShareCard
+            score={score}
+            catchCount={catchCount}
+            title={title}
+            nickname={nickname}
+            onRestart={onRestart}
+          />
 
-        {/* 랭킹 영역 (아래) */}
-        {isRankingEnabled &&
-          (editingNickname ? (
-            <NicknameInput
-              initialValue={nickname ?? ""}
-              onSubmit={handleNicknameSubmit}
-              onCancel={nickname ? () => setEditingNickname(false) : undefined}
-              submitLabel={nickname ? "저장" : "랭킹 등록"}
-            />
-          ) : (
+          {/* 랭킹 영역 (아래) — 이름 변경 중에도 화면 그대로 유지, 입력은 모달로 띄운다 */}
+          {isRankingEnabled && (
             <>
               {submitState === "submitting" && (
                 <p className="text-xs text-white/70">랭킹에 등록하는 중…</p>
@@ -155,9 +148,27 @@ function GameOverOverlay({
                 이름 변경
               </button>
             </>
-          ))}
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* 이름 변경 모달 — 뒤 화면(랭킹 등)을 그대로 둔 채 위에 띄운다 */}
+      {editingNickname && (
+        <div
+          className="absolute inset-0 z-40 flex items-center justify-center rounded-3xl bg-black/60 p-4"
+          onClick={() => setEditingNickname(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <NicknameInput
+              initialValue={nickname ?? ""}
+              onSubmit={handleNicknameSubmit}
+              onCancel={() => setEditingNickname(false)}
+              submitLabel="저장"
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
