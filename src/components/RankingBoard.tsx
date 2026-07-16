@@ -61,7 +61,7 @@ function RankingBoard({ myDeviceId, myEntry, limit = 20 }: RankingBoardProps) {
 
   return (
     <div className="flex w-full max-w-xs flex-col gap-2 rounded-2xl bg-white/95 p-4 text-slate-800 shadow-lg">
-      <h3 className="text-center text-sm font-extrabold">🏆 전역 랭킹</h3>
+      <h3 className="text-center text-sm font-extrabold">🏆 랭킹</h3>
 
       {!isRankingEnabled ? (
         <p className="py-4 text-center text-xs text-slate-400">
