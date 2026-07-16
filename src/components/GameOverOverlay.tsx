@@ -70,6 +70,10 @@ function GameOverOverlay({
     // 최초 마운트에만 실행 (initRef 가드 — register는 score/catchCount 고정이라 안정적)
   }, [register]);
 
+  // 최초 닉네임 등록 화면: 닉네임을 정하기 전에는 결과 카드·공유·다시하기를 숨긴다.
+  const isInitialNicknameEntry =
+    isRankingEnabled && editingNickname && nickname === null;
+
   return (
     <div className="absolute inset-0 z-30 flex flex-col items-center gap-2.5 overflow-y-auto rounded-3xl bg-slate-900/60 px-4 py-6 text-center backdrop-blur-sm">
       <span className="text-4xl">🎣</span>
@@ -130,20 +134,24 @@ function GameOverOverlay({
           </>
         ))}
 
-      {/* 결과 공유 */}
-      <ShareCard
-        score={score}
-        catchCount={catchCount}
-        title={title}
-        nickname={nickname}
-      />
+      {/* 결과 카드·공유·다시하기 — 최초 닉네임 등록 전에는 숨긴다 */}
+      {!isInitialNicknameEntry && (
+        <>
+          <ShareCard
+            score={score}
+            catchCount={catchCount}
+            title={title}
+            nickname={nickname}
+          />
 
-      <button
-        onClick={onRestart}
-        className="mt-1 rounded-full bg-amber-400 px-8 py-3 text-lg font-extrabold text-slate-900 shadow-lg transition active:scale-95"
-      >
-        다시하기
-      </button>
+          <button
+            onClick={onRestart}
+            className="mt-1 rounded-full bg-amber-400 px-8 py-3 text-lg font-extrabold text-slate-900 shadow-lg transition active:scale-95"
+          >
+            다시하기
+          </button>
+        </>
+      )}
     </div>
   );
 }
