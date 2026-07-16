@@ -26,6 +26,9 @@
       ├─ 방어를 시간 안에 못 잡음 → 목숨 -1, 다른 자리로 도주
       └─ 복어·오징어를 안 건드림 → 페널티 없이 조용히 다른 자리로 이동
    → 목숨 0 → 게임 오버, 칭호·점수·최고 기록 표시
+      ├─ 닉네임 입력(최초 1회) → 전역 랭킹에 내 최고 기록 등록
+      ├─ 랭킹 보드에서 TOP N + 내 순위 확인
+      └─ 결과 카드 이미지로 저장/공유
         ↑                                                      |
         └────────────────── 다시하기 ←─────────────────────────┘
 ```
@@ -103,6 +106,24 @@
 | 방어 놓침 (시간초과) | 주황 토스트, "미끄덩... 놓쳤다!" 등            | 💨        |
 | 미끼 잘못 포획       | 빨강 토스트, "⚠️ 앗, 그건 복어잖아!" 등        | 💥        |
 
+### 3.8 랭킹 시스템 — 전역 랭킹
+
+게임 오버 시 잡은 마릿수(catchCount)를 기준으로 전역 랭킹에 기록을 남기고, 다른 플레이어와 순위를 겨룬다. 별도 로그인 없이 참여할 수 있다.
+
+- **식별:** 최초 게임 오버 시 닉네임(2~8자)을 한 번 입력받고, 기기별로 발급한 UUID(`localStorage` 저장)에 연결한다. 이후에는 같은 이름으로 자동 등록되며, 닉네임은 언제든 변경할 수 있다.
+- **기록 갱신:** 기기 ID(`device_id`) 기준 **upsert**로 본인 최고 기록만 유지한다. 새 점수가 기존 최고 기록보다 높을 때만 갱신되고, 낮으면 무시된다.
+- **표시:** 랭킹 보드에 상위 N명(예: TOP 20)을 순위·닉네임·마릿수·점수로 보여주고, 내 순위는 하이라이트한다. 목록에 들지 못하면 하단에 "내 순위 NN위"를 별도로 안내한다.
+- **정렬 기준:** 잡은 마릿수 내림차순, 동률이면 점수 → 등록 시각 순.
+- **예외 처리:** 네트워크 실패 시 랭킹 등록/조회가 안 돼도 게임 진행과 로컬 최고 점수에는 영향이 없도록 하고, 재시도 안내를 띄운다.
+
+### 3.9 결과 공유 — 이미지 카드
+
+게임 오버 결과를 이미지 카드로 만들어 저장·공유할 수 있다.
+
+- **카드 내용:** 최종 점수, 잡은 마릿수, 칭호, 게임 로고/캐릭터를 담은 정사각(또는 세로형) 이미지.
+- **동작:** `공유` 버튼을 누르면 카드 이미지를 생성해 **Web Share API**로 시스템 공유 시트를 띄운다(모바일 인스타·카카오톡 등). Web Share API를 지원하지 않는 환경에서는 **이미지 다운로드**로 대체한다.
+- **생성 방식:** 결과 카드 DOM을 캔버스로 렌더링해 PNG로 변환한다(예: `html-to-image`/`canvas` 계열). 외부 서버 없이 클라이언트에서 처리한다.
+
 ---
 
 ## 4. 화면(UI) 구성
@@ -129,7 +150,10 @@
 | 피드백 토스트  | 포획/실패/페널티 결과를 상단에 잠깐 띄움                                                               |
 | 파티클 레이어  | 결과에 따라 물보라/연기/충격 이펙트 (GSAP, `pointer-events: none`)                                     |
 | 시작 화면      | 게임 설명 + "복어·오징어는 잡으면 목숨이 줄어요!" 경고 문구 + 시작 버튼                                |
-| 게임 오버 화면 | 최종 점수/마릿수, 칭호, 다음 칭호까지 남은 마릿수, 최고 점수 갱신 여부, 다시하기 버튼                  |
+| 게임 오버 화면 | 최종 점수/마릿수, 칭호, 다음 칭호까지 남은 마릿수, 최고 점수 갱신 여부, 다시하기 버튼, 랭킹 보기·공유 버튼 |
+| 닉네임 입력    | 최초 게임 오버 시 노출되는 입력창(2~8자 검증). 이후 랭킹 화면에서 변경 가능                             |
+| 랭킹 보드      | TOP N 순위·닉네임·마릿수·점수, 내 순위 하이라이트. 로딩/에러/오프라인 상태 표시                        |
+| 공유 버튼      | 결과 카드 이미지를 생성해 Web Share API 호출(미지원 시 다운로드로 대체)                                |
 | 배경           | 이미지 없이 Tailwind CSS 그라데이션(하늘→바다→모래). 스타일링은 전부 Tailwind 유틸리티 사용            |
 
 ---
@@ -159,6 +183,15 @@ interface GameState {
   combo: number;
   feedback: Feedback | null;
 }
+
+interface RankingEntry {
+  id: string;
+  deviceId: string; // 기기별 UUID (localStorage)
+  nickname: string; // 2~8자
+  score: number;
+  catchCount: number;
+  createdAt: string;
+}
 ```
 
 - 개체(FishEntity)마다 자기 자신의 그라운드→점프→착지 타이머를 독립적으로 갖는다 (`setTimeout` 기반, `useEffect` 없이 액션 함수 안에서 다음 타이머를 직접 예약하는 방식).
@@ -176,7 +209,37 @@ interface GameState {
      ├─ <Fish /> × N               // 방어/복어/오징어 SVG (종별 형태 분기)
      ├─ <StartOverlay />           // phase === "ready"
      └─ <GameOverOverlay />        // phase === "gameover" — 칭호 표시
+         ├─ <NicknameInput />      // 최초 1회 닉네임 입력 / 변경
+         ├─ <RankingBoard />       // 전역 랭킹 TOP N + 내 순위
+         └─ <ShareCard />          // 결과 카드 이미지 생성·공유
 ```
+
+### 5.4 전역 랭킹 백엔드 (Supabase)
+
+랭킹은 **Supabase**(Postgres + JS 클라이언트)에 저장한다. 별도 서버 코드 없이 SPA에서 직접 read/upsert 하고, 보안은 RLS(Row Level Security)로 제어한다.
+
+```sql
+-- scores 테이블
+create table scores (
+  id          uuid primary key default gen_random_uuid(),
+  device_id   uuid not null unique,      -- 기기별 식별, upsert 키
+  nickname    text not null,             -- 2~8자
+  score       integer not null,
+  catch_count integer not null,
+  created_at  timestamptz not null default now()
+);
+create index scores_rank_idx on scores (catch_count desc, score desc, created_at asc);
+```
+
+- **기기 ID:** `lib/deviceId.ts`가 `localStorage`에 UUID를 생성·보관한다. 랭킹 등록·조회의 식별자로 사용한다.
+- **API 계층:** `lib/ranking.ts`에 `submitScore()`(device_id 기준 upsert, 기존 최고 기록보다 높을 때만 갱신)와 `fetchTopScores(limit)`(정렬 조회)를 둔다.
+- **보안(RLS):** `select`와 본인 `device_id` 대상 `insert/update`만 허용하고, 타인 기록 수정·삭제는 차단한다. 닉네임 길이·문자를 클라이언트와 DB 제약 양쪽에서 검증한다. Supabase anon key는 클라이언트에 노출되어도 되며(RLS가 실제 방어선), URL/키는 환경변수(`.env`, `VITE_` 접두사)로 관리한다.
+- **오프라인/실패:** 네트워크 오류 시 게임 진행과 로컬 최고 점수는 그대로 두고, 랭킹 등록/조회만 실패 안내 + 재시도로 처리한다.
+
+### 5.5 결과 공유 (클라이언트 이미지 생성)
+
+- `<ShareCard />`의 결과 카드 DOM을 캔버스로 렌더링해 PNG로 변환한다(`html-to-image` 등 클라이언트 라이브러리, 외부 서버 없음).
+- `공유` 버튼 → `navigator.share`로 이미지 파일 공유. 미지원 환경은 PNG 다운로드로 대체(`navigator.canShare` 분기).
 
 ### 5.3 애니메이션 (GSAP)
 
@@ -202,11 +265,12 @@ interface GameState {
 5. 칭호 시스템 (4단계, 게임 오버 화면 표시)
 6. 최고 점수 저장 (localStorage)
 7. 시작/게임오버 화면, 피드백 토스트·파티클 연출
+8. 전역 랭킹 (Supabase, 닉네임 + 기기 ID 식별, 본인 최고 기록 upsert, TOP N 표시)
+9. 결과 공유 (결과 카드 이미지 생성 + Web Share API / 다운로드)
 
 **제외 (향후 확장 아이디어)**
 
 - 사운드 이펙트
-- 전역 랭킹/서버 저장
+- 계정 로그인 / 소셜 인증
 - 추가 미끼·보너스 생물 종류 (예: 황금 방어, 폭탄 등)
 - 일일 도전 과제, 스킨/커스터마이징
-- 플레이어 닉네임, 결과 공유 기능
